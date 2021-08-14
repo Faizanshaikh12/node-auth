@@ -7,6 +7,7 @@ import sendMail from "../functions/email-sender";
 import {DOMAIN} from "../config/config"
 import {join} from "loadsh";
 import path from "path";
+import {userAuth} from '../middlewares/auth-middleware'
 
 
 const router = Router();
@@ -121,8 +122,11 @@ router.post('/login', LoginValidation, async (req, res) => {
 })
 
 //Get Request User Profile ----->>>>
-router.get('/profile', async (req, res) => {
-
+router.get('/profile', userAuth, async (req, res) => {
+    // console.log(req)
+    return res.status(200).json({
+       user: req.user
+    })
 })
 
 

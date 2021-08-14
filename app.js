@@ -5,12 +5,17 @@ import mongoose from "mongoose";
 
 //Router Export
 import userRouter from './routes/users';
+import passport from "passport";
+
+//Passport Middleware
+require('./middlewares/passport-middleware')
 
 //Initialize the Express
 const app = express()
 
 //Body Parser MiddleWare
-app.use(json())
+app.use(json());
+app.use(passport.initialize());
 
 //Inject router and apis
 app.use('/users', userRouter)
