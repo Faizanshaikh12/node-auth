@@ -4,13 +4,15 @@
   "description": "",
   "main": "app.js",
   "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
     "start": "node -r esm",
-    "dev": "nodemon -re esm"
+    "dev": "nodemon -r esm"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
+  "author": "Faizan Shaikh",
+  "license": "MIT",
   "dependencies": {
+    "@sendgrid/mail": "^7.4.6",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "dotenv": "^10.0.0",
@@ -18,6 +20,7 @@
     "express": "^4.17.1",
     "express-validator": "^6.12.1",
     "jsonwebtoken": "^8.5.1",
+    "loadsh": "0.0.4",
     "mongoose": "^5.13.7",
     "nodemon": "^2.0.12",
     "passport": "^0.4.1",
