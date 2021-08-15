@@ -2,10 +2,12 @@ import express from 'express'
 import {json} from "body-parser";
 import {DB, PORT} from "./config/config";
 import mongoose from "mongoose";
+import passport from "passport";
 
 //Router Export
-import userRouter from './routes/users';
-import passport from "passport";
+import userAPi from './routes/users';
+import profilesApi from "./routes/profiles";
+import {join} from "path";
 
 //Passport Middleware
 require('./middlewares/passport-middleware')
@@ -16,15 +18,17 @@ const app = express()
 //Body Parser MiddleWare
 app.use(json());
 app.use(passport.initialize());
+app.use(express.static(join(__dirname, './uploads')));
 
 //Inject router and apis
-app.use('/users', userRouter)
+app.use('/users', userAPi)
+app.use('/profiles', profilesApi)
 
 //Main function part
 const main = async () => {
     try {
         await mongoose.connect(DB, {
-            useFindAndModify: true,
+            useFindAndModify: false,
             useUnifiedTopology: true,
             useNewUrlParser: true,
         }, () => {
