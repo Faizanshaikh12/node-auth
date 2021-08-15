@@ -1,5 +1,5 @@
 import {Router} from 'express';
-import {LoginValidation, RegisterValidation} from "../validation/user-validator";
+import {LoginValidation, RegisterValidation, ResetPasswordValidation} from "../validation/user-validator";
 import Validator from '../middlewares/validation-middleware';
 import {User} from '../models/User';
 import {randomBytes} from "crypto";
@@ -89,7 +89,7 @@ router.get('/verify-now/:verificationCode', async (req, res) => {
 })
 
 //Post Request User Authenticate!!!!!!!!!!
-router.post('/login', LoginValidation, async (req, res) => {
+router.post('/login', LoginValidation, Validator, async (req, res) => {
     try {
         let {username, password} = req.body;
         let user = await User.findOne({username});
@@ -125,9 +125,106 @@ router.post('/login', LoginValidation, async (req, res) => {
 router.get('/profile', userAuth, async (req, res) => {
     // console.log(req)
     return res.status(200).json({
-       user: req.user
+        user: req.user
     })
 })
 
+//Update Request Reset Password
+router.put('/reset-password', ResetPasswordValidation, Validator, async (req, res) => {
+    try {
+        let {email} = req.body;
+        let user = await User.findOne({email});
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: 'User with the email is not found.'
+            })
+        }
+        user.genResetPassword();
+        await user.save();
+        //Send the Email verification
+        let html = `
+<div>
+    <h1>Hello, ${user.username}</h1>
+    <p>Please click the following link to reset your password.</p>
+    <p>If this password reset reset not created you can ignore this email.</p>
+    <a href="${DOMAIN}users/reset-password-now/${user.resetPasswordToken}">Verify Now</a>
+    </div>
+`;
+        await sendMail(user.email, "Reset Password", "Please reset your account", html);
+        return res.status(200).json({
+            success: true,
+            message: 'Password reset link is sent your email.'
+        })
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: 'An error occurred'
+        })
+    }
+
+})
+
+//Get Request Reset Password Token via Email
+router.get('/reset-password-now/:resetPasswordToken', async (req, res) => {
+    try {
+        let {resetPasswordToken} = req.params;
+        let user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpiresIn: {$gt: Date.now()},
+        });
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Password reset token is invalid or has expired."
+            })
+        }
+        return res.sendFile(path.join(__dirname, '../templates', 'reset-password.html'));
+    } catch (err) {
+        return res.sendFile(path.join(__dirname, '../templates', 'errors.html'));
+    }
+})
+
+//Post Request Reset Password Now
+router.post('/reset-password-now', async (req, res) => {
+    try {
+        let {resetPasswordToken, password} = req.body;
+        let user = await User.findOne({
+            resetPasswordToken,
+            resetPasswordExpiresIn: {$gt: Date.now()},
+        });
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "Password reset token is invalid or has expired."
+            })
+        }
+        user.password = password;
+        user.resetPasswordToken = undefined;
+        user.resetPasswordExpiresIn = undefined;
+        await user.save();
+
+        //Send notification email and the password  reset successful process
+        let html = `
+<div>
+    <h1>Hello, ${user.username}</h1>
+    <p>Your password is reseted successfully.</p>
+    <p>If you reset is not done by you can contact our team</p>
+    </div>
+`;
+        await sendMail(user.email, "Reset Password Successful", "Your Password is changed", html);
+
+        return res.status(200).json({
+            success: true,
+            message: 'Your Password Now Reset. Please login in your account with new password.'
+        })
+    } catch (err) {
+        return res.status(500).json({
+            success: false,
+            message: 'Something went wrong.'
+        })
+    }
+
+})
 
 export default router;

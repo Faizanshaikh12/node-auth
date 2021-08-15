@@ -12,3 +12,4 @@ const password = check("password", "Password is required or minimum length 6 cha
 
 export const RegisterValidation = [name, username, email, password];
 export const LoginValidation = [username, password];
+export const ResetPasswordValidation = [email];
