@@ -7,7 +7,9 @@ import passport from "passport";
 //Router Export
 import userAPi from './routes/users';
 import profilesApi from "./routes/profiles";
+import postsApi from "./routes/posts"
 import {join} from "path";
+import cors from "cors";
 
 //Passport Middleware
 require('./middlewares/passport-middleware')
@@ -17,12 +19,14 @@ const app = express()
 
 //Body Parser MiddleWare
 app.use(json());
+app.use(cors());
 app.use(passport.initialize());
 app.use(express.static(join(__dirname, './uploads')));
 
 //Inject router and apis
 app.use('/users', userAPi)
 app.use('/profiles', profilesApi)
+app.use('/posts', postsApi)
 
 //Main function part
 const main = async () => {
